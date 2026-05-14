@@ -1,0 +1,15 @@
+CREATE USER IF NOT EXISTS 'logtrace_app'@'localhost'
+  IDENTIFIED BY 'CHANGE_ME_NODE1_APP_PASSWORD';
+
+CREATE USER IF NOT EXISTS 'logtrace_app'@'127.0.0.1'
+  IDENTIFIED BY 'CHANGE_ME_NODE1_APP_PASSWORD';
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+  ON logtrace_node1.*
+  TO 'logtrace_app'@'localhost';
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+  ON logtrace_node1.*
+  TO 'logtrace_app'@'127.0.0.1';
+
+FLUSH PRIVILEGES;

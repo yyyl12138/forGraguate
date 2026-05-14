@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://log-trace.local/schemas/canonical-log.schema.json",
+  "title": "CanonicalLog",
+  "description": "Canonical log record used for log leaf hashing and MySQL plaintext replica comparison.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "pri",
+    "version",
+    "timestamp",
+    "hostname",
+    "app_name",
+    "procid",
+    "msgid",
+    "structured_data",
+    "msg",
+    "raw_message",
+    "source",
+    "batch_id",
+    "log_id"
+  ],
+  "properties": {
+    "pri": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 191,
+      "description": "RFC5424 priority value."
+    },
+    "version": {
+      "type": "integer",
+      "const": 1,
+      "description": "RFC5424 version. Current contract uses version 1."
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+      "description": "Event time in UTC millisecond format."
+    },
+    "hostname": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Source host name after normalization."
+    },
+    "app_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Application name such as tomcat."
+    },
+    "procid": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Process ID, or '-' when unavailable."
+    },
+    "msgid": {
+      "type": "string",
+      "enum": [
+        "WEB_ACCESS",
+        "WEB_ERROR",
+        "AUTH_FAIL",
+        "EXPLOIT_ATTEMPT"
+      ],
+      "description": "Normalized event type."
+    },
+    "structured_data": {
+      "$ref": "#/$defs/structuredData"
+    },
+    "msg": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Normalized message summary."
+    },
+    "raw_message": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Original log line collected from the source file."
+    },
+    "source": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "Business log source, for example tomcat-cve-2017-12615."
+    },
+    "batch_id": {
+      "type": "string",
+      "pattern": "^bch_v1_[a-z0-9][a-z0-9-]*_\\d{8}T\\d{6}Z$",
+      "description": "Backend-generated batch ID."
+    },
+    "log_id": {
+      "type": "string",
+      "pattern": "^log_v1_[a-f0-9]{32}$",
+      "description": "Backend-generated log ID shared by all MySQL replicas."
+    }
+  },
+  "$defs": {
+    "nullablePort": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 65535
+    },
+    "nullableHttpStatus": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 100,
+      "maximum": 599
+    },
+    "nullableNonNegativeInteger": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "structuredData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_ip",
+        "source_port",
+        "dest_ip",
+        "dest_port",
+        "container_id",
+        "container_name",
+        "service_name",
+        "request_method",
+        "request_uri",
+        "status_code",
+        "response_size",
+        "log_type",
+        "batch_id"
+      ],
+      "properties": {
+        "source_ip": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Client IP address, or '-' when unavailable."
+        },
+        "source_port": {
+          "$ref": "#/$defs/nullablePort",
+          "description": "Client port when available, otherwise null."
+        },
+        "dest_ip": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Destination IP address, or '-' when unavailable."
+        },
+        "dest_port": {
+          "$ref": "#/$defs/nullablePort",
+          "description": "Destination port when available, for Tomcat demo usually 8080."
+        },
+        "container_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Container ID, or '-' when unavailable."
+        },
+        "container_name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Container name, or '-' when unavailable."
+        },
+        "service_name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Service name such as tomcat."
+        },
+        "request_method": {
+          "type": "string",
+          "pattern": "^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS|TRACE|CONNECT|-)$",
+          "description": "HTTP request method, or '-' when unavailable."
+        },
+        "request_uri": {
+          "type": "string",
+          "minLength": 1,
+          "description": "HTTP request URI, or '-' when unavailable."
+        },
+        "status_code": {
+          "$ref": "#/$defs/nullableHttpStatus",
+          "description": "HTTP status code when available, otherwise null."
+        },
+        "response_size": {
+          "$ref": "#/$defs/nullableNonNegativeInteger",
+          "description": "Response body size in bytes when available, otherwise null."
+        },
+        "log_type": {
+          "type": "string",
+          "enum": [
+            "access",
+            "error",
+            "auth",
+            "-"
+          ],
+          "description": "Normalized log type."
+        },
+        "batch_id": {
+          "type": "string",
+          "pattern": "^bch_v1_[a-z0-9][a-z0-9-]*_\\d{8}T\\d{6}Z$",
+          "description": "Duplicated batch ID inside structured data for RFC5424-style mapping."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,301 @@
+:root {
+  color: #1f2937;
+  background: #f4f6f8;
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+  letter-spacing: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #f4f6f8;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: #263238;
+  color: #fff;
+}
+
+.brand {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  font-size: 17px;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.menu {
+  border-right: 0;
+  background: transparent;
+}
+
+.menu .el-menu-item {
+  color: #d7dee3;
+}
+
+.menu .el-menu-item.is-active,
+.menu .el-menu-item:hover {
+  color: #fff;
+  background: #176b87;
+}
+
+.topbar {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-bottom: 1px solid #dbe2e8;
+}
+
+.topbar-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.user-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.content {
+  padding: 18px;
+}
+
+.page-section {
+  background: #fff;
+  border: 1px solid #dbe2e8;
+  border-radius: 6px;
+  padding: 18px;
+  min-height: calc(100vh - 96px);
+}
+
+.section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5eaf0;
+  padding-bottom: 12px;
+}
+
+.section-head h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.section-head p {
+  margin: 0;
+  color: #667784;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.toolbar {
+  margin-bottom: 14px;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.time-range-form-item {
+  grid-column: span 2;
+}
+
+.wide-input {
+  min-width: 320px;
+}
+
+.mono-input input,
+.hash-text {
+  font-family: "SFMono-Regular", Consolas, monospace;
+}
+
+.hash-wrap {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  gap: 6px;
+  vertical-align: middle;
+}
+
+.hash-text {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+  color: #334155;
+}
+
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0;
+  flex-wrap: wrap;
+}
+
+.action-row.compact {
+  margin: 8px 0 14px;
+}
+
+.time-range-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.time-picker-control {
+  width: 178px;
+}
+
+.time-shortcuts {
+  display: inline-flex;
+  flex-wrap: nowrap;
+}
+
+.time-iso-preview,
+.field-hint {
+  margin-top: 4px;
+  color: #667784;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.detail-block {
+  margin-top: 14px;
+}
+
+.verify-form {
+  max-width: 720px;
+}
+
+.el-table {
+  border: 1px solid #e5eaf0;
+}
+
+.el-table th.el-table__cell {
+  background: #f8fafc !important;
+  color: #344054;
+  font-weight: 600;
+}
+
+.el-table .cell {
+  line-height: 1.45;
+}
+
+.back-button {
+  margin-bottom: 14px;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #eef3f6;
+}
+
+.login-panel {
+  width: min(420px, calc(100vw - 32px));
+  padding: 28px;
+  background: #fff;
+  border: 1px solid #dbe2e8;
+  border-radius: 6px;
+}
+
+.login-panel h1 {
+  margin: 0 0 24px;
+  font-size: 24px;
+}
+
+.full-button {
+  width: 100%;
+}
+
+.auth-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  margin-top: 14px;
+  color: #667784;
+}
+
+.data-form {
+  max-width: 840px;
+}
+
+h2 {
+  margin: 22px 0 12px;
+  font-size: 16px;
+}
+
+.el-pagination {
+  margin-top: 14px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 760px) {
+  .sidebar {
+    width: 180px !important;
+  }
+
+  .brand {
+    font-size: 14px;
+    padding: 0 12px;
+  }
+
+  .content {
+    padding: 10px;
+  }
+
+  .page-section {
+    padding: 12px;
+  }
+
+  .section-head {
+    display: block;
+  }
+
+  .wide-input {
+    min-width: 100%;
+  }
+
+  .time-range-form-item {
+    grid-column: span 1;
+  }
+
+  .time-picker-control {
+    width: 100%;
+  }
+
+  .topbar {
+    padding: 0 10px;
+  }
+
+  .topbar-title {
+    font-size: 15px;
+  }
+
+  .user-block {
+    gap: 6px;
+  }
+}

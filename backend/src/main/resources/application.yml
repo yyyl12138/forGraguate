@@ -1,0 +1,60 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: logtrace-backend
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    time-zone: UTC
+  datasource:
+    node1:
+      url: ${LOGTRACE_NODE1_JDBC_URL:jdbc:mysql://127.0.0.1:3306/logtrace_node1?useUnicode=true&characterEncoding=utf8&connectionTimeZone=UTC}
+      username: ${LOGTRACE_NODE1_JDBC_USERNAME:root}
+      password: ${LOGTRACE_NODE1_JDBC_PASSWORD:y18275321140}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    node2:
+      url: ${LOGTRACE_NODE2_JDBC_URL:jdbc:mysql://127.0.0.1:3306/logtrace_node2?useUnicode=true&characterEncoding=utf8&connectionTimeZone=UTC}
+      username: ${LOGTRACE_NODE2_JDBC_USERNAME:root}
+      password: ${LOGTRACE_NODE2_JDBC_PASSWORD:y18275321140}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    node3:
+      url: ${LOGTRACE_NODE3_JDBC_URL:jdbc:mysql://127.0.0.1:3306/logtrace_node3?useUnicode=true&characterEncoding=utf8&connectionTimeZone=UTC}
+      username: ${LOGTRACE_NODE3_JDBC_USERNAME:root}
+      password: ${LOGTRACE_NODE3_JDBC_PASSWORD:y18275321140}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logtrace:
+  node-id: node1
+  internal-ingest:
+    shared-token: ${LOGTRACE_INTERNAL_INGEST_SHARED_TOKEN:replace-with-stage10-machine-token}
+  auto-seal:
+    enabled: ${LOGTRACE_AUTO_SEAL_ENABLED:false}
+    source: ${LOGTRACE_AUTO_SEAL_SOURCE:tomcat-cve-2017-12615}
+    poll-interval-millis: ${LOGTRACE_AUTO_SEAL_POLL_INTERVAL_MILLIS:15000}
+    buffer-seconds: ${LOGTRACE_AUTO_SEAL_BUFFER_SECONDS:90}
+    max-windows-per-run: ${LOGTRACE_AUTO_SEAL_MAX_WINDOWS_PER_RUN:10}
+  ledger:
+    mode: ${LOGTRACE_LEDGER_MODE:mock}
+    channel-name: ${LOGTRACE_LEDGER_CHANNEL_NAME:mychannel}
+    chaincode-name: ${LOGTRACE_LEDGER_CHAINCODE_NAME:log-evidence}
+    msp-id: ${LOGTRACE_LEDGER_MSP_ID:Org1MSP}
+    peer-endpoint: ${LOGTRACE_LEDGER_PEER_ENDPOINT:peer0.org1.example.com:7051}
+    override-authority: ${LOGTRACE_LEDGER_OVERRIDE_AUTHORITY:peer0.org1.example.com}
+    tls-cert-path: ${LOGTRACE_LEDGER_TLS_CERT_PATH:/home/yangli/Documents/fabric-workspace/network/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt}
+    client-cert-path: ${LOGTRACE_LEDGER_CLIENT_CERT_PATH:/home/yangli/Documents/fabric-workspace/network/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem}
+    client-key-dir: ${LOGTRACE_LEDGER_CLIENT_KEY_DIR:/home/yangli/Documents/fabric-workspace/network/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore}
+  replica-sync:
+    secret: ${LOGTRACE_REPLICA_SYNC_SECRET:replace-with-stage95-replica-sync-secret}
+    scheduler-enabled: ${LOGTRACE_REPLICA_SYNC_SCHEDULER_ENABLED:true}
+    poll-interval-millis: ${LOGTRACE_REPLICA_SYNC_POLL_INTERVAL_MILLIS:5000}
+    batch-size: ${LOGTRACE_REPLICA_SYNC_BATCH_SIZE:100}
+    drain-timeout-millis: ${LOGTRACE_REPLICA_SYNC_DRAIN_TIMEOUT_MILLIS:10000}
+  security:
+    jwt-secret: ${LOGTRACE_JWT_SECRET:replace-with-at-least-32-byte-secret-for-node1}
+    access-token-ttl-seconds: ${LOGTRACE_ACCESS_TOKEN_TTL_SECONDS:3600}
+    refresh-token-ttl-seconds: ${LOGTRACE_REFRESH_TOKEN_TTL_SECONDS:604800}

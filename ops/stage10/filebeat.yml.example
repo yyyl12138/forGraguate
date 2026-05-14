@@ -1,0 +1,29 @@
+filebeat.inputs:
+  - type: filestream
+    id: stage10-tomcat-access
+    enabled: true
+    paths:
+      - /opt/log-trace/vulhub-logs/tomcat/localhost_access_log.*.txt
+    parsers: []
+    fields_under_root: true
+    fields:
+      logtrace_source: tomcat-cve-2017-12615
+      logtrace_app_name: tomcat
+      logtrace_hostname: node1
+    scan_frequency: 2s
+    prospector.scanner.check_interval: 2s
+    prospector.scanner.fingerprint.length: 64
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+
+output.file:
+  path: /var/spool/logtrace-stage10
+  filename: filebeat-stage10
+  rotate_every_kb: 10240
+  number_of_files: 20
+  permissions: 0644
+  codec.json:
+    pretty: false
+    escape_html: false

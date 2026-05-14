@@ -1,0 +1,691 @@
+openapi: 3.1.0
+info:
+  title: Log Traceability Backend API
+  version: 0.4.0
+  description: Stage 4 Spring Boot API for blockchain-based network log evidence and traceability.
+servers:
+  - url: http://localhost:8080
+    description: Local development on node1-compatible profile
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+  - name: Logs
+  - name: Batches
+  - name: Integrity
+  - name: Ledger
+  - name: Audits
+paths:
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Register an application user.
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registered user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Login with username and password.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Token pair and user profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/auth/refresh:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Refresh access and refresh tokens.
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: New token pair.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke current refresh token.
+      operationId: logout
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '204':
+          description: Logged out.
+        default:
+          $ref: '#/components/responses/Error'
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current authenticated user.
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Current user profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/logs/ingest:
+    post:
+      tags: [Logs]
+      summary: Ingest Filebeat or mock log records.
+      operationId: ingestLogs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestLogsRequest'
+      responses:
+        '202':
+          description: Accepted logs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestLogsResponse'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/logs/search:
+    get:
+      tags: [Logs]
+      summary: Search logs by stable keys.
+      operationId: searchLogs
+      parameters:
+        - $ref: '#/components/parameters/SourceNode'
+        - name: log_id
+          in: query
+          schema: { type: string, pattern: '^log_v1_[a-f0-9]{32}$' }
+        - name: batch_id
+          in: query
+          schema: { type: string, pattern: '^bch_v1_[a-z0-9][a-z0-9-]*_[0-9]{8}T[0-9]{6}Z$' }
+        - name: source_ip
+          in: query
+          schema: { type: string }
+        - name: request_uri
+          in: query
+          schema: { type: string }
+        - name: request_method
+          in: query
+          schema: { type: string }
+        - name: status_code
+          in: query
+          schema: { type: integer, minimum: 100, maximum: 599 }
+        - name: msgid
+          in: query
+          schema: { type: string }
+        - name: start_time
+          in: query
+          schema: { $ref: '#/components/schemas/UtcTimestamp' }
+        - name: end_time
+          in: query
+          schema: { $ref: '#/components/schemas/UtcTimestamp' }
+        - name: keyword
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Paged logs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogSearchResponse'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/batches:
+    get:
+      tags: [Batches]
+      summary: Search local batch metadata.
+      operationId: listBatches
+      parameters:
+        - name: source
+          in: query
+          schema: { type: string, pattern: '^[a-z0-9][a-z0-9-]*$' }
+        - name: start_time
+          in: query
+          schema: { $ref: '#/components/schemas/UtcTimestamp' }
+        - name: end_time
+          in: query
+          schema: { $ref: '#/components/schemas/UtcTimestamp' }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Paged batches.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchListResponse'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/batches/seal:
+    post:
+      tags: [Batches]
+      summary: Seal a 60-second batch and submit evidence to the ledger mock.
+      operationId: sealBatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SealBatchRequest'
+      responses:
+        '201':
+          description: Sealed batch.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchSealResponse'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/batches/{batch_id}:
+    get:
+      tags: [Batches]
+      summary: Get batch evidence and local replica metadata.
+      operationId: getBatch
+      parameters:
+        - $ref: '#/components/parameters/BatchId'
+      responses:
+        '200':
+          description: Batch detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchDetailResponse'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/integrity/check:
+    post:
+      tags: [Integrity]
+      summary: Check one batch against ledger and three MySQL replicas.
+      operationId: checkIntegrity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntegrityCheckRequest'
+      responses:
+        '200':
+          description: Integrity check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrityCheckResponse'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/ledger/batches:
+    get:
+      tags: [Ledger]
+      summary: Query ledger batch evidence by source or time range.
+      operationId: queryLedgerBatches
+      parameters:
+        - name: source
+          in: query
+          schema: { type: string, pattern: '^[a-z0-9][a-z0-9-]*$' }
+        - name: start_time
+          in: query
+          schema: { $ref: '#/components/schemas/UtcTimestamp' }
+        - name: end_time
+          in: query
+          schema: { $ref: '#/components/schemas/UtcTimestamp' }
+      responses:
+        '200':
+          description: Ledger evidence records.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BatchEvidence'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/ledger/batches/{batch_id}:
+    get:
+      tags: [Ledger]
+      summary: Get ledger batch evidence by batch ID.
+      operationId: getLedgerBatch
+      parameters:
+        - $ref: '#/components/parameters/BatchId'
+      responses:
+        '200':
+          description: Ledger evidence.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchEvidence'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/ledger/batches/{batch_id}/verify-root:
+    post:
+      tags: [Ledger]
+      summary: Verify a recomputed Root against ledger evidence.
+      operationId: verifyLedgerRoot
+      parameters:
+        - $ref: '#/components/parameters/BatchId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyRootRequest'
+      responses:
+        '200':
+          description: Root verification result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyRootResponse'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/audits/operations:
+    get:
+      tags: [Audits]
+      summary: Query system operation audit rows.
+      operationId: listOperationAudits
+      parameters:
+        - name: operation_type
+          in: query
+          schema: { type: string }
+        - name: username
+          in: query
+          schema: { type: string }
+        - name: start_time
+          in: query
+          schema: { $ref: '#/components/schemas/UtcTimestamp' }
+        - name: end_time
+          in: query
+          schema: { $ref: '#/components/schemas/UtcTimestamp' }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Paged operation audits.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationAuditListResponse'
+        default:
+          $ref: '#/components/responses/Error'
+  /api/audits/logins:
+    get:
+      tags: [Audits]
+      summary: Query login audit rows.
+      operationId: listLoginAudits
+      parameters:
+        - name: username
+          in: query
+          schema: { type: string }
+        - name: success
+          in: query
+          schema: { type: boolean }
+        - name: start_time
+          in: query
+          schema: { $ref: '#/components/schemas/UtcTimestamp' }
+        - name: end_time
+          in: query
+          schema: { $ref: '#/components/schemas/UtcTimestamp' }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Paged login audits.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginAuditListResponse'
+        default:
+          $ref: '#/components/responses/Error'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Error:
+      description: Error response.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  parameters:
+    BatchId:
+      name: batch_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^bch_v1_[a-z0-9][a-z0-9-]*_[0-9]{8}T[0-9]{6}Z$'
+    SourceNode:
+      name: source_node
+      in: query
+      schema:
+        $ref: '#/components/schemas/SourceNode'
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 20
+  schemas:
+    UtcTimestamp:
+      type: string
+      pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$'
+      examples: ['2026-04-22T02:05:00.000Z']
+    SourceNode:
+      type: string
+      enum: [node1, node2, node3]
+      default: node1
+    UserRole:
+      type: string
+      enum: [ADMIN, AUDITOR, OPERATOR]
+    UserStatus:
+      type: string
+      enum: [ACTIVE, DISABLED]
+    RegisterRequest:
+      type: object
+      required: [username, password, display_name]
+      properties:
+        username: { type: string, minLength: 3, maxLength: 64 }
+        password: { type: string, minLength: 8, maxLength: 128 }
+        display_name: { type: string, minLength: 1, maxLength: 128 }
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string }
+    RefreshTokenRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token: { type: string }
+    UserResponse:
+      type: object
+      required: [user_id, username, display_name, role, status]
+      properties:
+        user_id: { type: integer, format: int64 }
+        username: { type: string }
+        display_name: { type: string }
+        role: { $ref: '#/components/schemas/UserRole' }
+        status: { $ref: '#/components/schemas/UserStatus' }
+    AuthTokenResponse:
+      type: object
+      required: [access_token, refresh_token, token_type, expires_in, user]
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        token_type: { type: string, const: Bearer }
+        expires_in: { type: integer, minimum: 1 }
+        user:
+          $ref: '#/components/schemas/UserResponse'
+    IngestLogsRequest:
+      type: object
+      required: [source, hostname, app_name, file_path, records]
+      properties:
+        source: { type: string, pattern: '^[a-z0-9][a-z0-9-]*$' }
+        hostname: { type: string }
+        app_name: { type: string }
+        file_path: { type: string }
+        records:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/IngestLogRecord'
+    IngestLogRecord:
+      type: object
+      required: [raw_message]
+      properties:
+        raw_message: { type: string }
+        file_offset: { type: integer, format: int64, minimum: 0 }
+    IngestLogsResponse:
+      type: object
+      required: [accepted_count, failed_count, replica_sync_status, replica_sync_pending_count, logs]
+      properties:
+        accepted_count: { type: integer, minimum: 0 }
+        failed_count: { type: integer, minimum: 0 }
+        replica_sync_status:
+          type: string
+          enum: [PENDING, SYNCED]
+          description: Replica writes are asynchronous; PENDING means node2/node3 outbox tasks were created.
+        replica_sync_pending_count:
+          type: integer
+          minimum: 0
+          description: Number of node2/node3 replica sync tasks created by this ingest response.
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/IngestedLogSummary'
+    IngestedLogSummary:
+      type: object
+      required: [log_id, batch_id, event_time, leaf_hash]
+      properties:
+        log_id: { type: string }
+        batch_id: { type: string }
+        event_time: { $ref: '#/components/schemas/UtcTimestamp' }
+        leaf_hash: { type: string, pattern: '^[a-f0-9]{64}$' }
+    LogRecord:
+      type: object
+      properties:
+        log_id: { type: string }
+        batch_id: { type: string }
+        source: { type: string }
+        source_node: { $ref: '#/components/schemas/SourceNode' }
+        event_time: { $ref: '#/components/schemas/UtcTimestamp' }
+        hostname: { type: string }
+        app_name: { type: string }
+        msgid: { type: string }
+        msg: { type: string }
+        source_ip: { type: string }
+        request_method: { type: string }
+        request_uri: { type: string }
+        status_code: { type: integer, nullable: true }
+        raw_message: { type: string }
+        normalized_message: { type: object }
+        leaf_hash: { type: string }
+    LogSearchResponse:
+      type: object
+      required: [page, size, total, items]
+      properties:
+        page: { type: integer }
+        size: { type: integer }
+        total: { type: integer, format: int64 }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogRecord'
+    SealBatchRequest:
+      type: object
+      required: [source, start_time]
+      properties:
+        source: { type: string, pattern: '^[a-z0-9][a-z0-9-]*$' }
+        start_time: { $ref: '#/components/schemas/UtcTimestamp' }
+    BatchSealResponse:
+      type: object
+      required: [batch_id, source, start_time, end_time, log_count, merkle_root, seal_status]
+      properties:
+        batch_id: { type: string }
+        source: { type: string }
+        start_time: { $ref: '#/components/schemas/UtcTimestamp' }
+        end_time: { $ref: '#/components/schemas/UtcTimestamp' }
+        log_count: { type: integer, minimum: 1 }
+        merkle_root: { type: string, pattern: '^[a-f0-9]{64}$' }
+        seal_status: { type: string, enum: [SEALED_PENDING_CHAIN, CHAIN_COMMITTED] }
+        chain_tx_id: { type: string, nullable: true }
+    BatchListResponse:
+      type: object
+      required: [page, size, total, items]
+      properties:
+        page: { type: integer }
+        size: { type: integer }
+        total: { type: integer, format: int64 }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BatchSealResponse'
+    BatchDetailResponse:
+      type: object
+      required: [ledger_evidence, replica_batches, logs]
+      properties:
+        ledger_evidence:
+          $ref: '#/components/schemas/BatchEvidence'
+        replica_batches:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/BatchSealResponse'
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogRecord'
+    BatchEvidence:
+      type: object
+      required: [batch_id, merkle_root, log_count, start_time, end_time, source, schema_version, hash_algorithm, canonicalization_version, created_at, tx_id]
+      properties:
+        doc_type: { type: string, const: BatchEvidence }
+        batch_id: { type: string }
+        merkle_root: { type: string, pattern: '^[a-f0-9]{64}$' }
+        log_count: { type: integer, minimum: 1 }
+        start_time: { $ref: '#/components/schemas/UtcTimestamp' }
+        end_time: { $ref: '#/components/schemas/UtcTimestamp' }
+        source: { type: string }
+        schema_version: { type: integer, const: 1 }
+        hash_algorithm: { type: string, const: SHA-256 }
+        canonicalization_version: { type: string, const: clog-v1 }
+        created_at: { $ref: '#/components/schemas/UtcTimestamp' }
+        tx_id: { type: string }
+    IntegrityCheckRequest:
+      type: object
+      required: [batch_id]
+      properties:
+        batch_id: { type: string }
+    IntegrityCheckResponse:
+      type: object
+      required: [batch_id, ledger_root, replica_roots, abnormal_nodes, differences]
+      properties:
+        batch_id: { type: string }
+        ledger_root: { type: string }
+        replica_roots:
+          type: object
+          additionalProperties: { type: string }
+        abnormal_nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceNode'
+        differences:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntegrityDifference'
+    IntegrityDifference:
+      type: object
+      required: [type, node]
+      properties:
+        type:
+          type: string
+          enum: [MISSING_LOG, EXTRA_LOG, MODIFIED_LOG, BATCH_ROOT_MISMATCH, MULTI_REPLICA_DIVERGENCE]
+        node:
+          $ref: '#/components/schemas/SourceNode'
+        log_id: { type: string, nullable: true }
+        node_leaf_hash: { type: string, nullable: true }
+        reference_leaf_hash: { type: string, nullable: true }
+        reference_nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceNode'
+    VerifyRootRequest:
+      type: object
+      required: [merkle_root]
+      properties:
+        merkle_root: { type: string, pattern: '^[a-f0-9]{64}$' }
+    VerifyRootResponse:
+      type: object
+      required: [batch_id, expected_merkle_root, actual_merkle_root, matched, tx_id]
+      properties:
+        batch_id: { type: string }
+        expected_merkle_root: { type: string }
+        actual_merkle_root: { type: string }
+        matched: { type: boolean }
+        tx_id: { type: string }
+    OperationAuditListResponse:
+      type: object
+      properties:
+        page: { type: integer }
+        size: { type: integer }
+        total: { type: integer, format: int64 }
+        items:
+          type: array
+          items:
+            type: object
+    LoginAuditListResponse:
+      type: object
+      properties:
+        page: { type: integer }
+        size: { type: integer }
+        total: { type: integer, format: int64 }
+        items:
+          type: array
+          items:
+            type: object
+    ErrorResponse:
+      type: object
+      required: [type, title, status, detail]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
